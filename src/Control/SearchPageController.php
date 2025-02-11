@@ -93,7 +93,7 @@ class SearchPageController extends PageController
         }
 
         // Remove duplicates
-        $resultsData = $resultsData->removeDuplicates('id');
+        // $resultsData = $resultsData->removeDuplicates('id');
 
         return [
             'results' => $resultsData->toNestedArray(),
