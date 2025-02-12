@@ -2,13 +2,17 @@
 
 namespace Somar\Search\Job;
 
-use Exception;
-use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use Page;
-use SilverStripe\Core\Config\Configurable;
+use Exception;
+use SilverStripe\Assets\File;
+use SilverStripe\Assets\Image;
+use SilverStripe\Assets\Folder;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
 use Somar\Search\ElasticSearchService;
+use SilverStripe\Core\Config\Configurable;
+use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
+use Intervention\Image\WebP\Injectors\Image as WebPImage;
 
 /**
  * Re-index all content in the site to Elastic Search.
@@ -81,12 +85,12 @@ class SearchIndexJob extends AbstractQueuedJob
                     continue;
                 }
 
-                // if (!$record->GUID) {
-                //     $record->assignGUID();
-                // }
+                if (!$record->GUID && $record->hasField('GUID')) {
+                    $record->assignGUID();
+                }
 
                 $documents[] = [
-                    'id' => $record->GUID,  // This doesn't include locale!!!
+                    'id' => $record->GUID ? $record->GUID : $record->ID,  // This doesn't include locale!!!
                     'searchData' => $record->searchData()
                 ];
             }
