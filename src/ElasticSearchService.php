@@ -34,7 +34,14 @@ class ElasticSearchService
         }
 
         $cloudID = Environment::getEnv('ELASTIC_CLOUD_ID');
-        $index = Environment::getEnv('ELASTIC_INDEX');
+        // $index = Environment::getEnv('ELASTIC_INDEX');
+        
+        // if(!$index) {
+        //     // get from yml config
+        //     $index = $this->config()->ElasticIndex;
+        // }
+
+        $index = $this->config()->ElasticIndex;
 
         if (empty($cloudID) || empty($index)) {
             throw new \RuntimeException('Please set ELASTIC_CLOUD_ID and ELASTIC_INDEX in the .env file');
