@@ -81,9 +81,9 @@ class SearchIndexJob extends AbstractQueuedJob
                     continue;
                 }
 
-                if (!$record->GUID) {
-                    $record->assignGUID();
-                }
+                // if (!$record->GUID) {
+                //     $record->assignGUID();
+                // }
 
                 $documents[] = [
                     'id' => $record->GUID,  // This doesn't include locale!!!
@@ -114,6 +114,8 @@ class SearchIndexJob extends AbstractQueuedJob
         $original_stage = Versioned::get_stage();
         Versioned::set_stage(Versioned::LIVE);
 
+        // skip the IndexedClasses in $this->config()->ExcludedClasses
+        $excludedClasses = $this->config()->get('ExcludedClasses') ?? [];
         if (DataObject::has_extension(Page::class, 'TractorCow\Fluent\Extension\FluentExtension')) {
             $locales = singleton(Page::class)->Locales()->toArray();
 
@@ -129,14 +131,21 @@ class SearchIndexJob extends AbstractQueuedJob
                 );
             });
         } else {
-            $records[] = [
-                'list' => Page::get(),
-                'count' => Page::get()->count()
-            ];
+            if (!in_array(Page::class, $excludedClasses)) {
+                $records[] = [
+                    'list' => Page::get(),
+                    'count' => Page::get()->count()
+                ];
+            }
         }
+
 
         if (!empty($this->config()->IndexedClasses)) {
             foreach ($this->config()->IndexedClasses as $class) {
+                // Skip if the class is in the excluded list
+                if (in_array($class, $excludedClasses)) {
+                    continue;
+                }
                 if (DataObject::has_extension($class, 'TractorCow\Fluent\Extension\FluentExtension')) {
                     $locales = singleton($class)->Locales()->toArray();
 
@@ -159,6 +168,7 @@ class SearchIndexJob extends AbstractQueuedJob
                 }
             }
         }
+    
 
         Versioned::set_stage($original_stage);
 
